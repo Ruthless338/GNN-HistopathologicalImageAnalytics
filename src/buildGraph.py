@@ -2,6 +2,7 @@ import torch
 import numpy as np
 import dgl
 from sklearn.metrics.pairwise import euclidean_distances
+dgl.backend.choose_backend('pytorch')
 
 '''
 每个样本都被提取特征变成特征空间中的一个点，我们可以通过计算这些点之间的相似度来构建一个图，这个图的节点是样本
@@ -14,3 +15,6 @@ def build_graph(features_s, features_t, threshold=150):
     src, dst = edges[:, 0], edges[:, 1]
     g = dgl.graph((src, dst))
     return g
+
+
+print(torch.__version__)

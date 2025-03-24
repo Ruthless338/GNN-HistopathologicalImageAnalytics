@@ -2,4 +2,4 @@ dgl
 torch
 torchvision
 numpy
-pandas
+matplotlib

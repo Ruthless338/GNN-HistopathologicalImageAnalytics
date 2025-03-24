@@ -26,8 +26,10 @@ class GNN(nn.Module):
     # g是图，features是节点特征
     # f = theta1 * W * x + theta2 * W * sum(x_neigh)
     def forward(self, g, features):
+        # 图局部操作，避免对原始图的修改
         with g.local_scope():
             g.ndata['h'] = features
+            # 计算图结点的邻居节点的聚合特征
             g.update_all(dgl.function.copy_u('h', 'm'), dgl.function.sum('m', 'h_neigh'))
             h_neigh = g.ndata['h_neigh']
             h = self.theta1 * torch.relu(self.linear(features)) + self.theta2 * torch.relu(self.linear(h_neigh))
@@ -45,9 +47,7 @@ class DomainAdaptationModel(nn.Module):
             nn.Linear(256, num_classes)
         )
     
-    def forward(self, x_s, x_t, graph=None):
-        features_s = self.backbone(x_s)
-        features_t = self.backbone(x_t)
+    def forward(self, features_s, features_t, graph=None):
         if graph is not None:
             features = torch.cat([features_s, features_t], dim=0)
             features_gnn = self.gnn(graph, features)
@@ -56,4 +56,4 @@ class DomainAdaptationModel(nn.Module):
             features_s_gnn, features_t_gnn = features_s, features_t
 
         y_s, y_t = self.classifier(features_s_gnn), self.classifier(features_t_gnn)
-        return y_s, y_t, features_s, features_t
+        return y_s, y_t
